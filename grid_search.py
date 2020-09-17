@@ -1,13 +1,13 @@
-from utils.data import Data 
 from utils.estimators import Classifier, Dataset
+import numpy as np
 
-tiff_filename = "/home/ecology/landwaterclassifier/Data/Images/"
-shp_filename = "/home/ecology/landwaterclassifier/Data/Labels/"
-data = Data(tiff_filename, shp_filename)
-tiff = data.read_tiff()
-mask = data.get_mask()
-X,y = data.get_Xy(tiff, mask, n_sample = 2000000)
+savepath = "./outputs/"
+
+X_train = np.load(savepath+"X_train.npy")
+X_test = np.load(savepath+"X_test.npy")
+y_train = np.load(savepath+"y_train.npy")
+y_test = np.load(savepath+"y_test.npy")
+
 classifier = Classifier(savepath = "./outputs")
-X_train, X_test, y_train, y_test = data.train_test_split(X, y, save=False)
 all_dataset = Dataset(X_train, X_test, y_train, y_test)
 classifier.random_forest(trainX=all_dataset.trainX, trainY=all_dataset.trainY, testX=all_dataset.testX, testY=all_dataset.testY, grid_search=True, train=False, feature_importance=False)

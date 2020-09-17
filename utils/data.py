@@ -417,7 +417,7 @@ class Data:
         Sklearn implementation of train_test_split
         """
         X_train, X_test, y_train, y_test = train_test_split(X, y, 
-                    test_size=0.33, random_state=42, shuffle=True)
+                    test_size=test_size, random_state=42, shuffle=True)
         if save:
             np.save(self.savepath+"/X_train.npy",X_train)
             np.save(self.savepath+"/y_train.npy",y_train)

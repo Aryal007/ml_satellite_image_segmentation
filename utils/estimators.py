@@ -78,7 +78,7 @@ class Classifier():
     def grid_search(self, estimator, param_grid, features, targets):
         print("\nGrid search for algorithm:  {}".format(estimator))
         cv = StratifiedShuffleSplit(n_splits=3, test_size=0.33, random_state=42)
-        grid = GridSearchCV(estimator=estimator, param_grid=param_grid, cv=cv, verbose=10, n_jobs=6)
+        grid = GridSearchCV(estimator=estimator, param_grid=param_grid, cv=cv, verbose=10, n_jobs=-1)
         grid.fit(features, targets)
         print("The best parameters are %s with a score of %0.2f"
               % (grid.best_params_, grid.best_score_))
@@ -104,9 +104,8 @@ class Classifier():
         pickle.dump(_estimator, open(self.savepath+'/estimator.sav', 'wb'))
         return estimator
 
-    def naive_bayes(self, trainX, trainY, testX, testY, grid_search=False, train=True):
+    def naive_bayes(self, trainX, trainY, testX, testY, grid_search=False, train=True, alpha = 0.001):
         print('\nMultinominal Naive Bayes')
-        alpha = 0.001
         if grid_search:
             estimator = MultinomialNB(alpha=alpha, fit_prior=True)
             alpha_range = [0.001, 0.002, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.07, 0.08, 0.09, 0.1, 0.5, 1, 1.2,
@@ -124,10 +123,8 @@ class Classifier():
             ])
             self.train_and_evaluate(clf, trainX, trainY, testX, testY)
 
-    def svm_linear(self, trainX, trainY, testX, testY, grid_search=False, train=True):
+    def svm_linear(self, trainX, trainY, testX, testY, grid_search=False, train=True, c = 1.5, gamma = "auto"):
         print('\nSVM with Linear Kernel')
-        c = 1.5
-        gamma = 'auto'
         if grid_search:
             estimator = SVC(kernel='linear', random_state=42, verbose=False, C=c, gamma=gamma)
             C_range = [0.01, 0.1, 0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 50, 100, 500, 1000]
@@ -145,10 +142,8 @@ class Classifier():
             ])
             self.train_and_evaluate(clf, trainX, trainY, testX, testY)
 
-    def svm_rbf(self, trainX, trainY, testX, testY, grid_search=False, train=True):
+    def svm_rbf(self, trainX, trainY, testX, testY, grid_search=False, train=True, c = 100, gamma = 0.01):
         print('\nSVM with RBF Kernel')
-        c = 100
-        gamma = 0.01
         if grid_search:
             estimator = SVC(kernel='rbf', random_state=42, verbose=False, C=c, gamma=gamma)
             C_range = [0.01, 0.1, 0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 50, 100, 500, 1000]
@@ -166,10 +161,8 @@ class Classifier():
             ])
             self.train_and_evaluate(clf, trainX, trainY, testX, testY)
             
-    def random_forest(self, trainX, trainY, testX, testY, grid_search=False, train=True, feature_importance = False, roc_curve = False):
+    def random_forest(self, trainX, trainY, testX, testY, grid_search=False, train=True, n_estimators = 10, max_depth = 3, feature_importance = False, roc_curve = False):
         print('\nRandom Forest')
-        n_estimators = 10
-        max_depth = 3
         
         if grid_search:
             estimator = RandomForestClassifier(n_estimators = n_estimators, max_depth = max_depth, random_state=42) 
