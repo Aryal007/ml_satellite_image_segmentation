@@ -457,33 +457,3 @@ class Data:
         pyplot.ylabel('Probability')
         pyplot.xlabel('Intensity')
         pyplot.show()
-
-'''  
-tiff_filename = "/home/mibook/Desktop/Fall 2020/sel/stephen/Sample/Images/"
-shp_filename = "/home/mibook/Desktop/Fall 2020/sel/stephen/Sample/Labels/"
-data = Data(tiff_filename, shp_filename)
-tiff = data.read_tiff()
-shp = data.read_shp()
-mask = data.get_mask()
-
-X,y = data.get_Xy(tiff, mask, n_sample = 2000000)
-data.train_test_split(X,y)
-#data.get_histogram(X, y, channel=1)
-
-from estimators import Dataset, Classifier
-classifier = Classifier()
-X_train, X_test, y_train, y_test = data.train_test_split(X, y, save=False)
-all_dataset = Dataset(X_train, X_test, y_train, y_test)
-classifier.random_forest(trainX=all_dataset.trainX, trainY=all_dataset.trainY, testX=all_dataset.testX, testY=all_dataset.testY,
-                   grid_search=True, train=False, feature_importance=False)
-
-
-tiff_filename = "/home/mibook/Desktop/Fall 2020/sel/stephen/HKH/Images/LE07_140041_20071221.tif"
-shp_filename = "/home/mibook/Desktop/Fall 2020/sel/stephen/HKH/Labels/HKH_CIDC_5basins_all.shp"
-data = Data(tiff_filename, shp_filename, classes = ['Debris covered', 'Clean Ice', 'Background'])
-tiff = data.read_tiff()
-shp = data.read_shp()
-mask = data.get_mask(column="Glaciers")
-X,y = data.get_Xy(tiff, mask)
-data.get_histogram(X, y, channel=13)
-'''  
