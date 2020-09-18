@@ -9,4 +9,4 @@ all_tiff = all_data.read_tiff()
 classifier = Classifier()
 for tiff in all_tiff:
     prediction = classifier.get_labels(tiff,"/estimator.sav")
-    np.save("./outputs/"+str(tiff.name).replace(".tif",".npy"), prediction)
+    np.save("./outputs/"+str(tiff.name).split("/")[-1].replace(".tif",".npy"), prediction)
