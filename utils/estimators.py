@@ -20,6 +20,9 @@ import pickle
 import time 
 from pure_sklearn.map import convert_estimator
 from matplotlib import pyplot
+import math
+from joblib import cpu_count, Parallel, delayed
+import scipy.sparse as sp
 from sys import exit
 
 class Utils():
@@ -235,35 +238,25 @@ class Classifier():
                 ('clf', estimator)
             ])
             self.train_and_evaluate(clf, trainX, trainY, testX, testY)
-            
-    def get_labels(self, tiffs, estimator):
-        if isinstance(tiffs, list):
-            outputs = []
-            for tiff in tiffs:
-                loaded_model = pickle.load(open(self.savepath+estimator, 'rb'))
-                np_tiff = tiff.read()
-                np_tiff = np_tiff.transpose(1,2,0)
-                height = np_tiff.shape[0]
-                width = np_tiff.shape[1]
-                np_tiff = list(np_tiff.reshape(-1, 5).astype('float64'))
-                output = loaded_model.predict(np_tiff)
-                output = np.asarray(output)
-                output = output.reshape(height, width)
-                np.save(savepath+"/"+str(tiff.name).replace(".tif",".npy"), output)
-                outputs.append(output)
-            return outputs
-        else:
-            tiff = tiffs
-            loaded_model = pickle.load(open(self.savepath+estimator, 'rb'))
-            np_tiff = tiff.read()
-            np_tiff = np_tiff.transpose(1,2,0)
-            height = np_tiff.shape[0]
-            width = np_tiff.shape[1]
-            np_tiff = list(np_tiff.reshape(-1, 5).astype('float64'))
-            outputs = loaded_model.predict(np_tiff)
-            outputs = np.asarray(outputs)
-            outputs = outputs.reshape(height, width)
-            return outputs
+    
+    def get_labels(self, tiff, estimator, k=16):
+        loaded_model = pickle.load(open(self.savepath+estimator, 'rb'))
+        np_tiff = tiff.read()
+        np_tiff = np_tiff.transpose(1,2,0)
+        height = np_tiff.shape[0]
+        width = np_tiff.shape[1]
+        np_tiff = np_tiff.reshape(-1, 5).astype('float64')
+        sample_size = math.ceil(height*width/k)
+        for i in range(k):
+            local_tiff = list(np_tiff[sample_size*i:sample_size*(i+1),:])
+            output = loaded_model.predict(local_tiff)
+            try:
+                outputs.extend(output)
+            except:
+                outputs = output
+        outputs = np.asarray(outputs)
+        outputs = outputs.reshape(height, width)
+        return outputs
     
     def get_rf_feature_importance(self, estimator):
         """
