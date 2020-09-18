@@ -257,7 +257,7 @@ class Classifier():
                 outputs = output
         outputs = np.asarray(outputs)
         outputs = outputs.reshape(height, width)
-        mask = np.mean(np_tiff, axis=0) == (256 or 0)
+        mask = np.mean(np_tiff, axis=2) == (256 or 0)
         outputs = outputs+1
         outputs[mask] = 0
         return outputs

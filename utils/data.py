@@ -373,7 +373,7 @@ class Data:
                     y[key*n_sample:(key+1)*n_sample,key] = 1
             if save:
                 np.save(self.savepath+"/X.npy",X)
-                np.save(self.savepath+"./y.npy",y)
+                np.save(self.savepath+"/y.npy",y)
             return X, y
         else:
             X_list, y_list = [], []
