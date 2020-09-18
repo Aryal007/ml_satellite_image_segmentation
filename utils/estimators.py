@@ -245,9 +245,10 @@ class Classifier():
         np_tiff = np_tiff.transpose(1,2,0)
         height = np_tiff.shape[0]
         width = np_tiff.shape[1]
-        np_tiff = np_tiff.reshape(-1, 5).astype('float64')
+        np_tiff = np_tiff.reshape(-1, np_tiff.shape[2]).astype('float64')
         sample_size = math.ceil(height*width/k)
         for i in range(k):
+            print(f"\tBatch {i+1} of {k}")
             local_tiff = list(np_tiff[sample_size*i:sample_size*(i+1),:])
             output = loaded_model.predict(local_tiff)
             try:
@@ -256,6 +257,9 @@ class Classifier():
                 outputs = output
         outputs = np.asarray(outputs)
         outputs = outputs.reshape(height, width)
+        mask = np.mean(np_tiff, axis=0) == (256 or 0)
+        outputs = outputs+1
+        outputs[mask] = 0
         return outputs
     
     def get_rf_feature_importance(self, estimator):
