@@ -243,6 +243,7 @@ class Classifier():
         loaded_model = pickle.load(open(self.savepath+estimator, 'rb'))
         np_tiff = tiff.read()
         np_tiff = np_tiff.transpose(1,2,0)
+        mask = np.mean(np_tiff, axis=2) == (256 or 0)
         height = np_tiff.shape[0]
         width = np_tiff.shape[1]
         np_tiff = np_tiff.reshape(-1, np_tiff.shape[2]).astype('float64')
@@ -257,7 +258,6 @@ class Classifier():
                 outputs = output
         outputs = np.asarray(outputs)
         outputs = outputs.reshape(height, width)
-        mask = np.mean(np_tiff, axis=2) == (256 or 0)
         outputs = outputs+1
         outputs[mask] = 0
         return outputs
