@@ -156,6 +156,17 @@ class Data:
             bbox_poly = gpd.GeoDataFrame({'geometry': bbox}, index=[0], crs=img_meta["crs"].data)
             return shp.loc[shp.intersects(bbox_poly["geometry"][0])]
         
+        def add_background_mask(tiff, mask):
+            _binary_channel = np.any(mask == 1, axis=2)
+            np_tiff = tiff.read()
+            _nonnan = np.isnan(np.mean(np_tiff[:-2,:,:], axis=0))
+            index = np.invert(_nonnan+_binary_channel)
+            background = np.zeros((mask.shape[0], mask.shape[1]))
+            background[index] = 1
+            background = np.expand_dims(background, axis=2)
+            mask = np.append(mask, background, axis = 2)
+            return mask
+        
         datasets = self.read_tiff()
         shapefiles = self.read_shp()
         if self.isfile:
@@ -183,6 +194,8 @@ class Data:
                 except Exception as e:
                     print(e)
                     print(value)
+            if self.background:
+                mask = add_background_mask(datasets, mask)
             return mask
         else:
             masks = []
@@ -209,6 +222,8 @@ class Data:
                     except Exception as e:
                         print(e)
                         print(value)
+                if self.background:
+                    mask = add_background_mask(mask)
                 masks.append(mask)
             return masks
     
@@ -269,7 +284,10 @@ class Data:
         """
         if mask.ndim > 2:
             _mask = np.zeros((mask.shape[0],mask.shape[1]))
-            for key, value in enumerate(self.classes):
+            if self.background:
+                classes = self.classes.copy()
+                classes.append("Background")
+            for key, value in enumerate(classes):
                 _mask += mask[:,:,key]*(key+1)
             pyplot.imshow(_mask)
             pyplot.show()
@@ -319,7 +337,28 @@ class Data:
             
             pyplot.show()  
             
-    def get_Xy(self, tiffs, masks, n_sample = 200000, save=False):
+    def _getXy(self, tiff, mask, n_sample, save):
+        classes = self.classes.copy()
+        np_tiff = tiff.read()
+        _nonnan = np.isnan(np.mean(np_tiff[:-2,:,:], axis=0))
+        if self.background:
+            classes.append("Background")
+        n_sample = np.amin(np.asarray([len(np.where((mask[:,:,i] == 1) & (_nonnan == False))[0]) for i in range(len(classes))]+[n_sample]))
+        X = np.zeros((n_sample*len(classes), np_tiff.shape[0]))
+        y = np.zeros((n_sample*len(classes), len(classes)))
+        for key, value in enumerate(classes):
+            _mask = np.where((mask[:,:,key] == 1) & (_nonnan == False))
+            _X = np_tiff[:,_mask[0],_mask[1]]
+            np.random.shuffle(_X)
+            _X = _X[:,:n_sample]
+            X[key*n_sample:(key+1)*n_sample,:] = _X.T
+            y[key*n_sample:(key+1)*n_sample,key] = 1
+        if save:
+            np.save(self.savepath+"/X.npy",X)
+            np.save(self.savepath+"/y.npy",y)
+        return X, y
+            
+    def get_Xy(self, tiff, mask, n_sample = 200000, save=False):
         """
         This function gets rasterio tiff object, numpy mask,
         number of samples for each class and returns X,y
@@ -342,72 +381,12 @@ class Data:
 
         """
         if self.isfile:
-            tiff = tiffs
-            mask = masks
-            np_tiff = tiff.read()
-            _nonnan = np.isnan(np_tiff).any(axis=0)
-            n_sample = np.amin(np.asarray([len(np.where((mask[:,:,i] == 1) & (_nonnan == False))[0]) for i in range(len(self.classes))]+[n_sample]))
-            if self.background:
-                self.classes.append("Background")
-                mask = np.append(mask,np.zeros((mask.shape[0],mask.shape[1],1)), axis = 2)
-            X = np.zeros((n_sample*len(self.classes), np_tiff.shape[0]))
-            y = np.zeros((n_sample*len(self.classes), len(self.classes)))
-            for key, value in enumerate(self.classes):
-                if value == "Background":
-                    background_mask = _nonnan
-                    for i in range(len(self.classes)-1):
-                        _mask = np.where((mask[:,:,key] == 1))
-                        background_mask[_mask[0],_mask[1]] = True
-                    _mask = np.where(background_mask == False)
-                    _X = np_tiff[:,_mask[0],_mask[1]]
-                    np.random.shuffle(_X)
-                    _X = _X[:,:n_sample]
-                    X[key*n_sample:(key+1)*n_sample,:] = _X.T
-                    y[key*n_sample:(key+1)*n_sample,key] = 1
-                else:
-                    _mask = np.where((mask[:,:,key] == 1) & (_nonnan == False))
-                    _X = np_tiff[:,_mask[0],_mask[1]]
-                    np.random.shuffle(_X)
-                    _X = _X[:,:n_sample]
-                    X[key*n_sample:(key+1)*n_sample,:] = _X.T
-                    y[key*n_sample:(key+1)*n_sample,key] = 1
-            if save:
-                np.save(self.savepath+"/X.npy",X)
-                np.save(self.savepath+"/y.npy",y)
+            X, y = self._getXy(self, tiff, mask, n_sample, save)
             return X, y
         else:
             X_list, y_list = [], []
-            for tiff, mask in zip(tiffs, masks):
-                np_tiff = tiff.read()
-                _nonnan = np.isnan(np_tiff).any(axis=0)
-                n_sample = np.amin(np.asarray([len(np.where((mask[:,:,i] == 1) & (_nonnan == False))[0]) for i in range(len(self.classes))]+[n_sample]))
-                if self.background:
-                    self.classes.append("Background")
-                    mask = np.append(mask,np.zeros((mask.shape[0],mask.shape[1],1)), axis = 2)
-                X = np.zeros((n_sample*len(self.classes), np_tiff.shape[0]))
-                y = np.zeros((n_sample*len(self.classes), len(self.classes)))
-                for key, value in enumerate(self.classes):
-                    if value == "Background":
-                        background_mask = _nonnan
-                        for i in range(len(self.classes)-1):
-                            _mask = np.where((mask[:,:,key] == 1))
-                            background_mask[_mask[0],_mask[1]] = True
-                        _mask = np.where(background_mask == False)
-                        _X = np_tiff[:,_mask[0],_mask[1]]
-                        np.random.shuffle(_X)
-                        _X = _X[:,:n_sample]
-                        X[key*n_sample:(key+1)*n_sample,:] = _X.T
-                        y[key*n_sample:(key+1)*n_sample,key] = 1
-                    else:
-                        _mask = np.where((mask[:,:,key] == 1) & (_nonnan == False))
-                        _X = np_tiff[:,_mask[0],_mask[1]]
-                        np.random.shuffle(_X)
-                        _X = _X[:,:n_sample]
-                        X[key*n_sample:(key+1)*n_sample,:] = _X.T
-                        y[key*n_sample:(key+1)*n_sample,key] = 1
-                if save:
-                    np.save(self.savepath+"/X.npy",X)
-                    np.save(self.savepath+"./y.npy",y)
+            for tiff, mask in zip(tiff, mask):
+                X, y = self._getXy(self, tiff, mask, n_sample, save)
                 X_list.extend(X)
                 y_list.extend(y)
             return np.asarray(X_list), np.asarray(y_list)
