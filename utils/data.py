@@ -381,12 +381,12 @@ class Data:
 
         """
         if self.isfile:
-            X, y = self._getXy(self, tiff, mask, n_sample, save)
+            X, y = self._getXy(tiff, mask, n_sample, save)
             return X, y
         else:
             X_list, y_list = [], []
             for tiff, mask in zip(tiff, mask):
-                X, y = self._getXy(self, tiff, mask, n_sample, save)
+                X, y = self._getXy(tiff, mask, n_sample, save)
                 X_list.extend(X)
                 y_list.extend(y)
             return np.asarray(X_list), np.asarray(y_list)
