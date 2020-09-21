@@ -18,10 +18,13 @@ To run the code on your machine:
 The images are provided by NOAA overhead images and the labels are generated manually using ArcGIS. The aim is to generate segmentation mask for the images given labels on some pixels of the image. The experimental results are presented in the notebook: https://github.com/Aryal007/ml_satellite_image_segmentation/blob/master/example_noaa_airborne.ipynb
 
 _Original Image_
-!(./images/image.png)
+
+![original_image](./images/image.png)
 
 _User Labels_
-!(./images/mask.png)
+
+![labels](./images/mask.png)
 
 _Predicted Segmentation Mask_
-!(./images/predicted.png)
+
+![predictions](./images/predicted.png)
