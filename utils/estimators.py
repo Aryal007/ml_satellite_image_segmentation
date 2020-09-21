@@ -21,9 +21,6 @@ import time
 from pure_sklearn.map import convert_estimator
 from matplotlib import pyplot
 import math
-from joblib import cpu_count, Parallel, delayed
-import scipy.sparse as sp
-from sys import exit
 
 class Utils():
     @staticmethod
@@ -105,7 +102,7 @@ class Classifier():
         # https://medium.com/building-ibotta/predict-with-sklearn-20x-faster-9f2803944446
         _estimator = convert_estimator(estimator)
         pickle.dump(_estimator, open(self.savepath+'/estimator.sav', 'wb'))
-        return estimator
+        return estimator, outputs
 
     def naive_bayes(self, trainX, trainY, testX, testY, grid_search=False, train=True, alpha = 0.001):
         print('\nMultinominal Naive Bayes')
@@ -182,12 +179,14 @@ class Classifier():
             clf = Pipeline([
                 ('clf', estimator)
             ])
-            estimator = self.train_and_evaluate(clf, trainX, trainY, testX, testY)
+            estimator, outputs = self.train_and_evaluate(clf, trainX, trainY, testX, testY)
             
             if feature_importance:
                 self.get_rf_feature_importance(estimator)
             if roc_curve:
                 pass
+            
+            return outputs
 
     def mlp(self, trainX, trainY, testX, testY, grid_search=False, train=True):
         print('\nMLP Neural Network')

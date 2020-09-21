@@ -15,7 +15,6 @@ from matplotlib import pyplot
 import numpy as np
 from sklearn.model_selection import train_test_split
 import os, glob
-from sys import exit
 
 np.random.seed(7)
 
@@ -338,6 +337,26 @@ class Data:
             pyplot.show()  
             
     def _getXy(self, tiff, mask, n_sample, save):
+        """
+        This function gets rasterio tiff object, numpy mask,
+        number of samples for each class and returns X,y
+        Parameters
+        ----------
+        tiff : TYPE
+            DESCRIPTION.
+        mask : TYPE
+            DESCRIPTION.
+        n_sample : TYPE, optional
+            DESCRIPTION. The default is 1000000.
+        save : TYPE, optional
+            DESCRIPTION. The default is False.
+        Returns
+        -------
+        X : numpy array
+            x values (no of bands * n_sample*len(classes))
+        y : numpy array
+            y values (len(classes) * n_sample*len(classes))
+        """
         classes = self.classes.copy()
         np_tiff = tiff.read()
         _nonnan = np.isnan(np.mean(np_tiff[:-2,:,:], axis=0))
@@ -358,28 +377,7 @@ class Data:
             np.save(self.savepath+"/y.npy",y)
         return X, y
             
-    def get_Xy(self, tiff, mask, n_sample = 200000, save=False):
-        """
-        This function gets rasterio tiff object, numpy mask,
-        number of samples for each class and returns X,y
-        Parameters
-        ----------
-        tiff : TYPE
-            DESCRIPTION.
-        mask : TYPE
-            DESCRIPTION.
-        n_sample : TYPE, optional
-            DESCRIPTION. The default is 1000000.
-        save : TYPE, optional
-            DESCRIPTION. The default is False.
-        Returns
-        -------
-        X : numpy array
-            x values (no of bands * n_sample*len(classes))
-        y : numpy array
-            y values (len(classes) * n_sample*len(classes))
-
-        """
+    def get_Xy(self, tiff, mask, n_sample = 200000, save=False, k_fold=False):
         if self.isfile:
             X, y = self._getXy(tiff, mask, n_sample, save)
             return X, y
@@ -387,8 +385,12 @@ class Data:
             X_list, y_list = [], []
             for tiff, mask in zip(tiff, mask):
                 X, y = self._getXy(tiff, mask, n_sample, save)
-                X_list.extend(X)
-                y_list.extend(y)
+                if k_fold:
+                    X_list.append(X)
+                    y_list.append(y)
+                else:
+                    X_list.extend(X)
+                    y_list.extend(y)
             return np.asarray(X_list), np.asarray(y_list)
     
     def train_test_split(self, X, y, test_size = 0.25, save = True):
@@ -403,6 +405,9 @@ class Data:
             np.save(self.savepath+"/X_test.npy",X_test)
             np.save(self.savepath+"/y_test.npy",y_test)
         return X_train, X_test, y_train, y_test
+    
+    def k_fold_split(self, X, y, k=16):
+        pass
             
     def get_histogram(self, X, y, channel=0):
         """
