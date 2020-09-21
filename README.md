@@ -19,6 +19,12 @@ The images are provided by NOAA overhead images and the labels are generated man
 
 _Original Image_
 
+![original_image](./images/image.png)
+
 _User Labels_
 
+![labels](./images/mask.png)
+
 _Predicted Segmentation Mask_
+
+![predictions](./images/predicted.png)
