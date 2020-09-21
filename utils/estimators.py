@@ -244,7 +244,7 @@ class Classifier():
         np_tiff = tiff.read()
         np_tiff = np_tiff.transpose(1,2,0)
         # Check if values == 0 or 256 or nan for everything but last 2 axis
-        mask = (np.mean(np_tiff[:,:,:-2], axis=2) == (256 or 0)) * (np.isnan(np.mean(np_tiff[:,:,:-2], axis=2)))
+        mask = (np.mean(np_tiff[:,:,:-2], axis=2) == (256 or 0)) + (np.isnan(np.mean(np_tiff[:,:,:-2], axis=2)))
         height = np_tiff.shape[0]
         width = np_tiff.shape[1]
         np_tiff = np_tiff.reshape(-1, np_tiff.shape[2]).astype('float64')
