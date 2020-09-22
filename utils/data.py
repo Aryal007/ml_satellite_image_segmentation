@@ -279,12 +279,11 @@ class Data:
         Returns
         -------
         None.
-    
         """
+        classes = self.classes.copy()
         if mask.ndim > 2:
             _mask = np.zeros((mask.shape[0],mask.shape[1]))
             if self.background:
-                classes = self.classes.copy()
                 classes.append("Background")
             for key, value in enumerate(classes):
                 _mask += mask[:,:,key]*(key+1)
@@ -357,19 +356,21 @@ class Data:
         y : numpy array
             y values (len(classes) * n_sample*len(classes))
         """
-        classes = self.classes.copy()
         np_tiff = tiff.read()
         _nonnan = np.isnan(np.mean(np_tiff[:-2,:,:], axis=0))
+        classes = self.classes.copy()
         if self.background:
             classes.append("Background")
         n_sample = np.amin(np.asarray([len(np.where((mask[:,:,i] == 1) & (_nonnan == False))[0]) for i in range(len(classes))]+[n_sample]))
         X = np.zeros((n_sample*len(classes), np_tiff.shape[0]))
         y = np.zeros((n_sample*len(classes), len(classes)))
         for key, value in enumerate(classes):
-            _mask = np.where((mask[:,:,key] == 1) & (_nonnan == False))
-            _X = np_tiff[:,_mask[0],_mask[1]]
-            np.random.shuffle(_X)
-            _X = _X[:,:n_sample]
+            _mask = (mask[:,:,key] == 1) * (_nonnan == False)
+            _mask = _mask.flatten()
+            np_tiff = np_tiff.reshape(np_tiff.shape[0],-1)
+            _X = np_tiff[:,_mask == 1]
+            index = np.random.permutation(_X.shape[1])
+            _X = _X[:,index[:n_sample]]
             X[key*n_sample:(key+1)*n_sample,:] = _X.T
             y[key*n_sample:(key+1)*n_sample,key] = 1
         if save:
@@ -405,9 +406,6 @@ class Data:
             np.save(self.savepath+"/X_test.npy",X_test)
             np.save(self.savepath+"/y_test.npy",y_test)
         return X_train, X_test, y_train, y_test
-    
-    def k_fold_split(self, X, y, k=16):
-        pass
             
     def get_histogram(self, X, y, channel=0):
         """
@@ -427,13 +425,16 @@ class Data:
         None.
 
         """
+        classes = self.classes.copy()
+        if self.background:
+            classes.append("Background")
         X = X[:,channel].astype('int16')
         try:
             bins = np.linspace(np.amin(X), np.amax(X), np.amax(X)-np.amin(X))
         except:
             bins = np.linspace(0, 100, 1)
         pyplot.title("Channel "+str(channel))
-        for key, value in enumerate(self.classes):
+        for key, value in enumerate(classes):
             ind = np.where(y[:,key] == 1)
             _x = X[ind[0]]
             pyplot.hist(_x, bins, alpha=0.5, density = True, label=value, log=True)
