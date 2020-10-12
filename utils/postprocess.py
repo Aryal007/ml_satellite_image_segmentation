@@ -47,7 +47,7 @@ class PostProcess:
         plt.show()
 
 if __name__ == "__main__":
-    filename = "../output_masks/5_band5.npy"
+    filename = "../output_masks/5_band13.npy"
     
     pp = PostProcess()
     

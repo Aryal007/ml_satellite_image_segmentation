@@ -18,6 +18,7 @@ import numpy as np
 import pandas as pd
 import pickle
 import time 
+import os
 from pure_sklearn.map import convert_estimator
 from matplotlib import pyplot
 import math
@@ -73,6 +74,8 @@ class Classifier():
     def __init__(self, savepath = "./outputs",
                  bands = ["Red","Green","Blue","NIR", "NDVI"]):
         self.savepath = savepath
+        if not os.path.exists(savepath):
+            os.makedirs(savepath)
         self.bands = bands
     
     def grid_search(self, estimator, param_grid, features, targets):

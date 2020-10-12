@@ -158,6 +158,7 @@ class Data:
         def add_background_mask(tiff, mask):
             _binary_channel = np.any(mask == 1, axis=2)
             np_tiff = tiff.read()
+            np_tiff[np_tiff == -32767] = np.nan
             _nonnan = np.isnan(np.mean(np_tiff[:-2,:,:], axis=0))
             index = np.invert(_nonnan+_binary_channel)
             background = np.zeros((mask.shape[0], mask.shape[1]))
@@ -262,10 +263,12 @@ class Data:
             channel = self.default_channel
         if isinstance(channel, int):
             array = tiff.read(channel)
+            array[array == -32767] = np.nan
             pyplot.imshow(array, cmap='pink')
             pyplot.show()
         elif len(channel) == 3:
             array = tiff.read(channel)
+            array[array == -32767] = np.nan
             array = np.transpose(array, (1,2,0))
             pyplot.imshow(array)
             pyplot.show()
@@ -287,10 +290,10 @@ class Data:
                 classes.append("Background")
             for key, value in enumerate(classes):
                 _mask += mask[:,:,key]*(key+1)
-            pyplot.imshow(_mask)
+            pyplot.imshow(_mask, cmap = 'tab10')
             pyplot.show()
         else:
-            pyplot.imshow(mask)
+            pyplot.imshow(mask, cmap = 'tab10')
             pyplot.show()
     
     def view_tiff_labels(self, tiff, mask):
@@ -313,6 +316,7 @@ class Data:
             fig.subplots_adjust(hspace=0.4, wspace=0.4)
             
             tiff = tiff.read(self.default_channel)
+            tiff[tiff == -32767] = np.nan
             ax = fig.add_subplot(1,4,1)
             ax.imshow(np.transpose(tiff, (1,2,0)))
             ax.axis('off')
@@ -357,6 +361,7 @@ class Data:
             y values (len(classes) * n_sample*len(classes))
         """
         np_tiff = tiff.read()
+        np_tiff[np_tiff == -32767] = np.nan
         _nonnan = np.isnan(np.mean(np_tiff[:-2,:,:], axis=0))
         classes = self.classes.copy()
         if self.background:
@@ -435,8 +440,7 @@ class Data:
             bins = np.linspace(0, 100, 1)
         pyplot.title("Channel "+str(channel))
         for key, value in enumerate(classes):
-            ind = np.where(y[:,key] == 1)
-            _x = X[ind[0]]
+            _x = X[y[:,key] == 1]
             pyplot.hist(_x, bins, alpha=0.5, density = True, label=value, log=True)
         pyplot.legend(loc='upper right')
         pyplot.ylabel('Probability')
