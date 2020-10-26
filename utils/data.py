@@ -270,6 +270,9 @@ class Data:
             array = tiff.read(channel)
             array[array == -32767] = np.nan
             array = np.transpose(array, (1,2,0))
+            minimum = np.nan_to_num(array).min(axis=(0,1))
+            maximum = np.nan_to_num(array).max(axis=(0,1))
+            array = (array - minimum ) / (maximum -minimum)
             pyplot.imshow(array)
             pyplot.show()
             
