@@ -31,7 +31,7 @@ class Data:
             self.background = False
         self.tiff_filename = tiff
         self.shp_filename = shp
-        self.classes = classes
+        self.classes = list(sorted(classes))
         self.default_channel = default_channel
         self.savepath = savepath
         if not os.path.exists(savepath):

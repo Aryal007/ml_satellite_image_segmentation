@@ -7,6 +7,7 @@ shp_loc = "./Data/Labels/"
 all_data = Data(tiff_loc, shp_loc, classes = ["water", "land"])
 all_tiff = all_data.read_tiff() 
 classifier = Classifier()
-for tiff in all_tiff:
+for i, tiff in enumerate(all_tiff):
+    print(f"Working tiff {i+1} of {len(all_tiff)}")
     prediction = classifier.get_labels(tiff,"/estimator.sav")
     np.save("./outputs/"+str(tiff.name).split("/")[-1].replace(".tif",".npy"), prediction)

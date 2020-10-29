@@ -39,7 +39,7 @@ class Dataset():
         self.trainY = np.argmax(trainY, axis = 1)
         self.testX = testX
         self.testY = np.argmax(testY, axis = 1)
-        self.classes = classes
+        self.classes = sorted(classes)
 
     def get_train_data(self):
         return [self.trainX, self.trainY]
@@ -67,6 +67,7 @@ class Dataset():
         if self.testY is not None:
             print ("Test stats: {}".format(len(self.testY)))
             testStat = Utils.count(self.testY)
+            print(testStat)
             for k in testStat.keys():
                 print("\t {}:{} = {}".format(k, self.classes[k], testStat.get(k, 0)))
 
