@@ -451,15 +451,23 @@ class Data:
         pyplot.show()
 
     def convert_to_tiff(self, tiff, image_np, filename="test.tiff"):
+        output = np.zeros(image_np.shape)
         with rasterio.open(self.savepath+"/"+filename,
                 'w',
-                driver='GTiff',
-                height=image_np.shape[0],
-                width=image_np.shape[1],
-                count=image_np.shape[2],
-                dtype=image_np.dtype,
-                crs=tiff.crs,
-                transform=tiff.transform) as dst:
-            for i in range(image_np.shape[2]):
-                dst.write(image_np[i], i+1)
+                nbits = 1,
+                driver = tiff.profile["driver"], 
+                dtype = tiff.profile["dtype"], 
+                nodata = tiff.profile["nodata"],
+                width = tiff.profile["width"],
+                height = tiff.profile["height"],
+                count = 1,
+                crs = tiff.profile["crs"],
+                transform = tiff.profile["transform"],
+                blockxsize = tiff.profile["blockxsize"],
+                blockysize = tiff.profile["blockysize"],
+                tiled = tiff.profile["tiled"],
+                interleave = tiff.profile["interleave"]) as dst:
+            for i in range(np.amax(image_np+1)):
+                output[image_np == i] = i
+            dst.write(output.astype(tiff.profile["dtype"]), 1)
 
