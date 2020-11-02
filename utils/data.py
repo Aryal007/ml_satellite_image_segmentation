@@ -449,3 +449,17 @@ class Data:
         pyplot.ylabel('Probability')
         pyplot.xlabel('Intensity')
         pyplot.show()
+
+    def convert_to_tiff(self, tiff, image_np, filename="test.tiff"):
+        with rasterio.open(self.savepath+"/"+filename,
+                'w',
+                driver='GTiff',
+                height=image_np.shape[0],
+                width=image_np.shape[1],
+                count=image_np.shape[2],
+                dtype=image_np.dtype,
+                crs=tiff.crs,
+                transform=tiff.transform) as dst:
+            for i in range(image_np.shape[2]):
+                dst.write(image_np[i], i+1)
+
