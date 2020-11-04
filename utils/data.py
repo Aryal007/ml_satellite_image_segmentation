@@ -450,7 +450,7 @@ class Data:
         pyplot.xlabel('Intensity')
         pyplot.show()
 
-    def convert_to_tiff(self, tiff, image_np, filename="test.tiff"):
+    def convert_to_tiff(self, tiff, image_np, filename="test.tiff", nan_value = -32767):
         output = np.zeros(image_np.shape)
         with rasterio.open(self.savepath+"/"+filename,
                 'w',
@@ -469,5 +469,7 @@ class Data:
                 interleave = tiff.profile["interleave"]) as dst:
             for i in range(np.amax(image_np+1)):
                 output[image_np == i] = i
+            tiff_np = tiff.read()
+            output[np.mean(tiff_np, axis=0) == nan_value] = np.amax(image_np+1)
             dst.write(output.astype(tiff.profile["dtype"]), 1)
 
