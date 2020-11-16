@@ -88,7 +88,7 @@ class Data:
             dataset = [rasterio.open(file) for file in files]
             return dataset
     
-    def read_shp(self):
+    def read_shp(self, column, drop):
         """
         This function reads the shp file given 
         filename and returns the geopandas object
@@ -102,16 +102,20 @@ class Data:
         """
         if self.isfile:
             shapefile = gpd.read_file(self.shp_filename)
+            shapefile = shapefile[shapefile[column] != drop]
             return shapefile
         else:
             files = glob.glob(self.tiff_filename+"/*.tif")
             filename = [os.path.basename(file) for file in files]
             shp_filename = [file.replace(".tif",".shp") for file in filename]
             shp_paths = [self.shp_filename+file for file in shp_filename]
-            shapefiles = [gpd.read_file(shp_path) for shp_path in shp_paths]
+            shapefiles = []
+            for shp_path in shp_paths:
+                shapefile = gpd.read_file(shp_path)
+                shapefiles.append(shapefile[shapefile[column] != drop])
             return shapefiles
     
-    def get_mask(self, column="Classname"):
+    def get_mask(self, column="Classname", drop=None):
         """
         This function reads the tiff filename and associated
         shp filename given and returns the numpy array mask
@@ -168,7 +172,7 @@ class Data:
             return mask
         
         datasets = self.read_tiff()
-        shapefiles = self.read_shp()
+        shapefiles = self.read_shp(column, drop)
         if self.isfile:
             dataset = datasets
             shapefile = shapefiles
