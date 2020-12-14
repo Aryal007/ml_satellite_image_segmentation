@@ -19,7 +19,6 @@ import pandas as pd
 import pickle
 import time 
 import os
-from pure_sklearn.map import convert_estimator
 from matplotlib import pyplot
 import math
 
@@ -104,8 +103,8 @@ class Classifier():
         print(metrics.confusion_matrix(testY, outputs))
         # convert to pure python estimator
         # https://medium.com/building-ibotta/predict-with-sklearn-20x-faster-9f2803944446
-        _estimator = convert_estimator(estimator)
-        pickle.dump(_estimator, open(self.savepath+'/estimator.sav', 'wb'))
+        #_estimator = convert_estimator(estimator)
+        pickle.dump(estimator, open(self.savepath+'/estimator.sav', 'wb'))
         return estimator, outputs
 
     def naive_bayes(self, trainX, trainY, testX, testY, grid_search=False, train=True, alpha = 0.001):
@@ -260,8 +259,8 @@ class Classifier():
             local_tiff = list(np_tiff[sample_size*i:sample_size*(i+1),:])
             output = loaded_model.predict(local_tiff)
             try:
-                outputs.extend(output)
-            except:
+                outputs = np.concatenate((outputs, output), axis=0)
+            except Exception as e:
                 outputs = output
         outputs = np.asarray(outputs)
         outputs = outputs.reshape(height, width)
