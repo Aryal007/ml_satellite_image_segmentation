@@ -242,9 +242,12 @@ class Classifier():
             ])
             self.train_and_evaluate(clf, trainX, trainY, testX, testY)
     
-    def get_labels(self, tiff, estimator, k=16):
+    def get_labels(self, tiff, estimator, k=16, add=None):
         loaded_model = pickle.load(open(self.savepath+estimator, 'rb'))
         np_tiff = tiff.read()
+        if add == "NDWI":
+            ndwi = (np_tiff[1,:,:]-np_tiff[3,:,:]) / (np_tiff[1,:,:]+np_tiff[3,:,:])
+            np_tiff = np.append(np_tiff, np.expand_dims(ndwi, axis=0), axis=0)
         np_tiff = np_tiff.transpose(1,2,0)
         # Check if values == 0 or 256 or nan for everything but last 2 axis
         mask = (np.mean(np_tiff[:,:,:-2], axis=2) == (256 or 0)) + (np.isnan(np.mean(np_tiff[:,:,:-2], axis=2)))
