@@ -129,7 +129,7 @@ dmypy.json
 .pyre/
 
 # Data directory
-Data/
+Data/Images/
 
 # output directory
 outputs/
